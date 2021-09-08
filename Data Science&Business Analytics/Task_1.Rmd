@@ -1,0 +1,96 @@
+---
+title: "Data Science & Business Analytics Task_1"
+author: "Nowful Ahamed"
+output: html_document
+---
+##Liner Regression
+  
+  In this section we will see how the machine learning can be used to implement regression functions. We will start with simple linear regression involving two variables.
+
+##Step 1:
+
+Loading the necessary  library packages for this dataset. 
+  readr     <- Use to read the .csv files.
+  ggplot2   <- Use to create a plot. 
+```{r}
+library(readr)
+library(ggplot2)
+```
+
+##Step 2:
+
+Load the data set into R 
+```{r}
+Mark <- read.csv("student_mark.csv")
+Mark
+```
+
+##Step 3:
+
+Checking the summary of the variables
+```{r}
+summary(Mark)
+```
+Our variables are quantitative, when we run this function it tells us the minimum, median, mean, and maximum values of the independent variable (Score) and dependent variable (Hours):
+
+##Step 4:
+
+Make sure your data meet the assumptions for linear regression.The relationship between the independent and dependent variable must be    linear. We can test this visually with a scatter plot to see if the distribution of data points could be described with a straight line.
+```{r}
+data_view <-ggplot(Mark, aes(x=Hours,y=Score,col = Score))+ geom_point()
+data_view
+```
+
+Now that you’ve determined your data meet the assumptions, you can perform a linear regression analysis to evaluate the relationship between the independent(Score) and dependent(Hours) variables.
+
+##Step 5: 
+
+For better prediction. Splitting the data as training and testing We are choosing more percentage of data  as training set and balance is testing data set   
+```{r}
+set.seed(0)
+train_dummy <- sample(1:nrow(Mark),20)
+train_data <- Mark[train_dummy,]
+test_data <-Mark[-train_dummy,]
+```
+Now that data has splint into training(80%) and testing(20%),let start model building
+```{r}
+dim(train_data)
+dim(test_data)
+head(train_data)
+head(test_data)
+```
+
+##Step 6:
+
+Model building using linear regression  
+```{r}
+Model_1 <- lm(Score ~ Hours,data = train_data)
+Model_1
+```
+##Step 7: 
+
+  1) Predict the percentage of an student based on the number of study hours.
+```{r}
+predict_percentage <- predict(Model_1,newdata = test_data)
+predict_percentage
+plot(Mark$Hours,Mark$Score,main='HouseVsScore',col = 'blue')
+abline(Model_1,col='green',lwd=2)
+```
+ 
+ 2) What will be the predict score if a student study for 9.25 hrs/day.
+```{r}
+predict_score <- predict(Model_1,data.frame(Hours=9.25))
+predict_score
+```
+The predicted Score: 92
+
+##Step 8: 
+
+  Now the final step to evaluate the performance of the model,For simplicity here, we have chosen the mean square error.
+```{r}
+mean((test_data$Score - predict_percentage)^2)
+mean(abs(test_data$Score - predict_percentage))
+```
+Mean Absolute Error: 4.706122 
+
+                                                                                                                       
