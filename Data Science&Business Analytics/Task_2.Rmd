@@ -1,0 +1,219 @@
+---
+title: "Data Science & Business Analytics Task_2"
+author: "Nowful Ahamed M"
+date: "9/14/2021"
+output: html_document
+---
+**$Prediction$ $using$ $Unsupervised$ $ML$**
+
+**<u>Definition</u>**
+
+  *Unsupervised machine learning, uses machine learning algorithms to analyze and cluster unlabeled data sets. These algorithms discover hidden patterns or data groupings without the need for human intervention. Its ability to discover similarities and differences in information make it the ideal solution for exploratory data analysis.*
+
+**Aim:** *Predict the optimum number of cluster and represent it visuals.*
+
+**<u>Step: 1</u>**
+ 
+**Call the library packages**
+```{r warning=FALSE}
+library(tidyverse)
+library(cluster)
+library(reshape2)
+library(ggplot2)
+library(gridExtra) 
+library(factoextra)
+```
+
+**<u>Step: 2</u>**
+
+**Load and Prep the Data**
+```{r}
+#load data
+Iris <-read.csv("Iris.csv")
+
+#view first six rows of dataset
+head(Iris)
+
+```
+ 
+ **<u>Step: 3</u>**
+ 
+**Explore & understand the data**
+  
+  The Iris flower data set is a specific set of information compiled by Ronald Fisher, a biologist, in the 1930s. It describes particular biological characteristics of various types of Iris flowers, specifically, the length and width of both $pedals$ and the $sepals$, which are part of the flower’s reproductive system.
+```{r}
+#display rows and columns
+dim(Iris)
+```
+  We can see that the dataset has 150 rows and 6 columns.
+```{r}
+#display column names
+names(Iris)
+```
+ 
+  *SepalLengthCm*  <-This Coloum contain length of the sepal in centimeter
+  
+  *SepalWidthCm*   <-This Coloum contain with of the sepal in centimeter 
+  
+  *PetalLengthCm*  <-This Coloum contain length of the petal in centimeter
+  
+  *PetalWidthCm*   <-This Coloum contain with of the petal in centimeter 
+  
+  *Species*        <-This Coloum contain breed of the flower
+  
+```{r}
+#summarize iris dataset
+summary(Iris)
+```
+
+*For each of the numeric variables we can see the following information:*
+
+   Min: The minimum value.
+   
+   1st Qu: The value of the first quartile (25th percentile).
+   
+   Median: The median value.
+   
+   Mean: The mean value.
+   
+   3rd Qu: The value of the third quartile (75th percentile).
+   
+   Max: The maximum value.
+    
+**<u>Step: 4</u>**
+
+*Visualize the Dataset using scatter plot* 
+```{r}
+#1)Sepal_length and Sepal_Width.
+ggplot(data = Iris,aes(x =SepalWidthCm,y=SepalLengthCm,)) + facet_wrap(~Species) + geom_point(aes(color=Species, shape=Species)) + ggtitle("Sepal Length Vs Width") 
+```
+```{r}
+#2)Petal_length and Petal_Width.
+ggplot(data = Iris,aes(x = PetalWidthCm,y= PetalLengthCm)) +facet_wrap(~Species) +geom_point(aes(color=Species, shape=Species)) + ggtitle("Petal Length Vs Width")
+```
+*Visualize the Dataset using boxplot*
+```{r}
+#3)Species vs Sepal & petal
+sepal_l <-ggplot(data = Iris, aes(x = Species, y = SepalLengthCm, color = Species,),ggtitle("Sepal length"))+ geom_boxplot()
+sepal_W <-ggplot(data = Iris, aes(x = Species, y = SepalWidthCm, color = Species,),ggtitle("Sepal Width"))+ geom_boxplot()
+petal_l <-ggplot(data = Iris, aes(x = Species, y = PetalLengthCm, color = Species,),ggtitle("Petal length"))+ geom_boxplot()
+petal_W <-ggplot(data = Iris, aes(x = Species, y = PetalWidthCm, color = Species,),ggtitle("Petal Width"))+ geom_boxplot()
+grid.arrange(sepal_l, sepal_W,petal_l,petal_W, ncol = 2)
+```
+
+    On top of the boxplot, we use Species a categorical variable, as x-coordinate.Essentially, we use it to define three groups of data. The y-axis is the sepal and petal(length & width), whose distribution we are interested in.
+
+**<u>Step: 5</u>**
+
+**K-means clustering**
+
+  K-means clustering, we seek to partition the observations into a pre-specified number of clusters.
+  To perform k-means clustering in R we can use the built-in *kmeans()* function.
+  Which uses the following syntax:*kmeans(data, centers, nstart)*.
+
+**Details of K-means clustering**
+
+   Let C1, . . . , CK denote sets containing the indices of the
+observations in each cluster. These sets satisfy two properties:
+1. C1 ∪ C2 ∪ . . . ∪ CK = {1, . . . , n}. In other words, each
+observation belongs to at least one of the K clusters.
+2. Ck ∩ Ck
+
+0 = ∅ for all k 6= k
+0
+. In other words, the clusters are
+non-overlapping: no observation belongs to more than one
+cluster.
+For instance, if the $i$th observation is in the $k$th cluster, then
+i ∈ Ck.*
+
+**<u>Step: 5.1</u>**
+ 
+ Prepare the data for K-mans clustering
+
+```{r}
+#To find how many rows in each species. 
+iris.labels <- Iris$Species
+table(iris.labels)
+```
+
+
+```{r}
+# Taking only the numerical values for clustering 
+iris_data <- Iris[1:4]
+head(iris_data)
+
+# Scaling the dataset
+iris_data_scale <- scale(iris_data)
+head(iris_data_scale)
+
+#The distances between the rows of a data matrix.
+
+iris_data <- dist(iris_data_scale)
+head(iris_data, 5)
+```
+
+**<u>Step: 5.2</u>**
+
+  Number of Clusters vs. the Total Within Sum of Squares
+
+```{r}
+#calculating how many clusters we need
+
+fviz_nbclust(iris_data_scale,kmeans,method="wss") + labs(subtitle="Elbow Method")
+
+```
+
+  Lastly, we can perform k-means clustering on the dataset using the optimal value for k of 3
+
+```{r}
+#Perform K-Means Clustering with Optimal K
+
+k.out <- kmeans(iris_data_scale,centers = 3,nstart = 100)
+print(k.out)
+
+```
+
+From the results we can see that:
+
+    48 states were assigned to the first cluster
+    49 states were assigned to the second cluster
+    53 states were assigned to the third cluster
+
+
+Now we can visualize the clusters on a scatterplot that displays the first two principal components on the axes using the fivz_cluster() function.
+
+```{r}
+#visualize the clustering algorithm results
+
+k.cluster <- k.out$cluster
+fviz_cluster(list(data=iris_data_scale,cluster=k.cluster))
+
+```
+
+We can also use the aggregate() function to find the mean of the variables in each cluster.
+```{r}
+
+#find means of each cluster
+
+aggregate(iris, by=list(cluster=k.cluster), mean)
+
+```
+Append the cluster assignments of each Species back to the original dataset.
+
+```{r}
+#add cluster assigment to original data
+final_data <- cbind(Iris, cluster = k.cluster)
+
+#view final data
+head(final_data)
+
+```
+
+
+
+
+
+
+
+
